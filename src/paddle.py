@@ -97,9 +97,6 @@ class Paddle:
         bot_left = midpoint + np.dot(rotation_matrix, np.array([-self.width / 2, self.height / 2]))
         bot_right = midpoint + np.dot(rotation_matrix, np.array([self.width / 2, self.height / 2]))
 
-        # compute rotation angle
-        angle = angle_from_horizontal - self.angle
-
         self.corners["top_left"] = top_left
         self.corners["top_right"] = top_right
         self.corners["bot_left"] = bot_left
