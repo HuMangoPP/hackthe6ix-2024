@@ -60,29 +60,41 @@ class Paddle:
 
     def update(self, dt: float, capture: cv.VideoCapture, face_detection):
         ret, frame = capture.read()
-        face = self.find_closest_face(frame, face_detection)
-        if (face):
-            eye_points = np.array([(p.x * 1920, p.y * 1080) for p in face.location_data.relative_keypoints][0:2])
-            angle_from_horizontal = np.arctan2(eye_points[0][1] - eye_points[1][1], eye_points[0][0] - eye_points[1][0])
-            midpoint = (eye_points[0] + eye_points[1]) / 2
-            rotation_matrix = self.rotation_matrix(angle_from_horizontal)
-            top_left = np.dot(rotation_matrix, np.array([midpoint[0] - self.width / 2, midpoint[1] - self.height / 2]))
-            top_right = np.dot(rotation_matrix, np.array([midpoint[0] + self.width / 2, midpoint[1] - self.height / 2]))
-            bot_left = np.dot(rotation_matrix, np.array([midpoint[0] - self.width / 2, midpoint[1] + self.height / 2]))
-            bot_right = np.dot(rotation_matrix, np.array([midpoint[0] - self.width / 2, midpoint[1] + self.height / 2]))
+        results = face_detection.process(frame)
 
-            # compute rotation angle
-            angle = angle_from_horizontal - self.angle
-            self.ang_vel = angle / dt
+        if (results.detections):
+            distances = []
+            for detection in results.detections:
+                key_points = np.array([(p.x, p.y) for p in detection.location_data.relative_keypoints]) 
+                key_points_coords = np.multiply(key_points,[1920,1080],).astype(int)
+                eye_points = key_points_coords[0:2]
+                midpoint = (eye_points[0] + eye_points[1]) / 2
+                distances.append(np.linalg.norm(self.xy - midpoint))
+            
+            shortest_distance = min(distances)
+            face = results.detections[distances.index(shortest_distance)]
+            if (face):
+                eye_points = np.array([(p.x * 1920, p.y * 1080) for p in face.location_data.relative_keypoints][0:2])
+                angle_from_horizontal = np.arctan2(eye_points[0][1] - eye_points[1][1], eye_points[0][0] - eye_points[1][0])
+                midpoint = (eye_points[0] + eye_points[1]) / 2
+                rotation_matrix = self.rotation_matrix(angle_from_horizontal)
+                top_left = np.dot(rotation_matrix, np.array([midpoint[0] - self.width / 2, midpoint[1] - self.height / 2]))
+                top_right = np.dot(rotation_matrix, np.array([midpoint[0] + self.width / 2, midpoint[1] - self.height / 2]))
+                bot_left = np.dot(rotation_matrix, np.array([midpoint[0] - self.width / 2, midpoint[1] + self.height / 2]))
+                bot_right = np.dot(rotation_matrix, np.array([midpoint[0] - self.width / 2, midpoint[1] + self.height / 2]))
 
-            self.corners["top_left"] = top_left
-            self.corners["top_right"] = top_right
-            self.corners["bot_left"] = bot_left
-            self.corners["bot_right"] = bot_right
+                # compute rotation angle
+                angle = angle_from_horizontal - self.angle
+                self.ang_vel = angle / dt
 
-            self.vel = (midpoint - self.xy) / dt
-            self.xy = midpoint
-            self.angle = angle_from_horizontal
+                self.corners["top_left"] = top_left
+                self.corners["top_right"] = top_right
+                self.corners["bot_left"] = bot_left
+                self.corners["bot_right"] = bot_right
+
+                self.vel = (midpoint - self.xy) / dt
+                self.xy = midpoint
+                self.angle = angle_from_horizontal
     
     def compute_transferred_velocity(self, point_of_collision: tuple, xoffset: float, yoffset: float):
         tangent_vel = self.ang_vel * np.linalg.norm(self.xy - np.array(point_of_collision)) * np.sign(np.array([xoffset, yoffset]))
