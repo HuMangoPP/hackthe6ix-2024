@@ -23,5 +23,3 @@ class Goal:
             pg.draw.rect(display, (255, 255, 255), self.rect)
         else:
             display.blit(self.sprite, self.rect)
-
-
