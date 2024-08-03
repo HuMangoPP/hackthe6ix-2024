@@ -77,6 +77,8 @@ class Ball:
     def check_collide_goal(self, goal: Goal):
         if goal.rect.collidepoint(self.xy):
             self.reset()
+            return True
+        return False
 
 
     def update(self, dt: float):

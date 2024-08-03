@@ -3,8 +3,8 @@ import pygame as pg
 
 class Goal:
     # type 0 = garbage, type 1 = recycling, type 2 = organics
-    def __init__(self, screen_size: tuple, type: int = 0, height: float = 150, sprite_path: str = ""):
-        self.center = np.array(screen_size) * np.array([1, 1/2])
+    def __init__(self, xy: tuple, type: int = 0, height: float = 150, sprite_path: str = ""):
+        self.center = np.array(xy)
         self.height = height
         self.type = type
 
@@ -12,7 +12,7 @@ class Goal:
             self.sprite = None
             self.rect = pg.Rect(0, 0, 50, height)
             self.rect.center = self.center.astype(float)
-        else :
+        else:
             self.sprite = pg.image.load(sprite_path).convert()
             self.sprite = pg.transform.scale_by(self.sprite, height / self.sprite.get_height())
             self.rect = self.sprite.get_rect()

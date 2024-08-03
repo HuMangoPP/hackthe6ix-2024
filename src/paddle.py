@@ -3,13 +3,16 @@ import pygame as pg
 
 
 class Paddle:
-    def __init__(self, screen_size: tuple):
-        self.xy = np.zeros(2, np.float32)
-        self.vel = np.zeros(2, np.float64)
+    def __init__(self, xy: tuple):
+        self.reset(xy)
         self.width = 20
         self.height = 100
-        self.angle = 0
     
+    def reset(self, xy: tuple):
+        self.xy = np.array(xy)
+        self.vel = np.zeros(2, np.float32)
+        self.angle = 0
+
     def update(self, dt: float):
         mpos = pg.mouse.get_pos()
         self.vel = (np.array(mpos) - self.xy) / dt

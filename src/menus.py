@@ -73,12 +73,26 @@ class GameMenu(Menu):
         from .goal import Goal
 
         self.countdown = 3
-        self.paddle = Paddle(screen_size)
+
+        self.left_score = 0
+        self.right_score = 0
+
+        self.left_paddle = Paddle(screen_size * np.array([1/4, 1/2]))
+        self.right_paddle = Paddle(screen_size * np.array([3/4, 1/2]))
+
         self.ball = Ball(screen_size)
-        self.goal = Goal(screen_size)
+
+        self.left_goal = Goal(screen_size * np.array([0, 1/2]))
+        self.right_goal = Goal(screen_size * np.array([1, 1/2]))
 
     def load(self):
         self.countdown = 3
+        self.left_score = 0
+        self.right_score = 0
+
+        self.left_paddle.reset(self.screen_size * np.array([1/4, 1/2]))
+        self.right_paddle.reset(self.screen_size * np.array([3/4, 1/2]))
+
         self.ball.reset()
 
     def update(self, dt: float, events: list[pg.Event]):
@@ -89,11 +103,15 @@ class GameMenu(Menu):
         if self.countdown > 0:
             self.countdown -= dt
         else:
-            self.paddle.update(dt)
+            self.left_paddle.update(dt)
             self.ball.update(dt)
     
-            self.ball.check_collide_paddle(self.paddle)
-            self.ball.check_collide_goal(self.goal)
+            self.ball.check_collide_paddle(self.left_paddle)
+            self.ball.check_collide_paddle(self.right_paddle)
+            if self.ball.check_collide_goal(self.left_goal):
+                self.right_score += 1
+            if self.ball.check_collide_goal(self.right_goal):
+                self.left_score += 1
 
         return menu_return
     
@@ -109,9 +127,29 @@ class GameMenu(Menu):
                 style='center'
             )
         else:
-            self.paddle.render(display)
+            self.font.render(
+                display, 
+                str(self.left_score),
+                self.screen_size[0] / 16,
+                self.screen_size[1] / 8,
+                (255, 255, 255),
+                self.screen_size[1] / 16,
+                style='center'
+            )
+            self.font.render(
+                display, 
+                str(self.right_score),
+                self.screen_size[0] * 15 / 16,
+                self.screen_size[1] / 8,
+                (255, 255, 255),
+                self.screen_size[1] / 16,
+                style='center'
+            )
+            self.left_paddle.render(display)
+            self.right_paddle.render(display)
             self.ball.render(display)
-            self.goal.render(display)
+            self.left_goal.render(display)
+            self.right_goal.render(display)
 
 
 class EndMenu(Menu):
