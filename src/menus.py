@@ -65,39 +65,53 @@ class StartMenu(Menu):
         )
 
 
-
 class GameMenu(Menu):
     def __init__(self, screen_size: tuple, font: Font):
         super().__init__(screen_size, font)
-        # from .paddle import ...
-        # from .ball import ...
-        # from .goal import ...
-        self.timer = 5
-    
+        from .paddle import Paddle
+        from .ball import Ball
+        from .goal import Goal
+
+        self.countdown = 3
+        self.paddle = Paddle(screen_size)
+        self.ball = Ball(screen_size)
+        self.goal = Goal(screen_size)
+
     def load(self):
-        self.timer = 5
+        self.countdown = 3
+        self.ball.reset()
 
     def update(self, dt: float, events: list[pg.Event]):
         menu_return = dict(
             new_menu=None,
             exit=False
         )
-        self.timer -= dt
-        if self.timer <= 0:
-            menu_return['new_menu'] = 'end'
+        if self.countdown > 0:
+            self.countdown -= dt
+        else:
+            self.paddle.update(dt)
+            self.ball.update(dt)
+    
+            self.ball.check_collide_paddle(self.paddle)
+            self.ball.check_collide_goal(self.goal)
 
         return menu_return
     
     def render(self, display: pg.Surface):
-        self.font.render(
-            display,
-            f'{int(np.ceil(self.timer))}',
-            self.screen_size[0] / 2,
-            self.screen_size[1] / 2,
-            (255, 255, 255),
-            self.screen_size[1] / 16,
-            style='center'
-        )
+        if self.countdown > 0:
+            self.font.render(
+                display,
+                str(int(np.ceil(self.countdown))),
+                self.screen_size[0] / 2,
+                self.screen_size[1] / 2,
+                (255, 255, 255),
+                self.screen_size[1] / 8,
+                style='center'
+            )
+        else:
+            self.paddle.render(display)
+            self.ball.render(display)
+            self.goal.render(display)
 
 
 class EndMenu(Menu):

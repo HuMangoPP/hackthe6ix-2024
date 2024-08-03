@@ -26,7 +26,7 @@ def main():
                 running = False
         
         dt = clock.get_time() / 1000
-        clock.tick()
+        clock.tick(60)
         menu_return = menus[current_menu].update(dt, events)
         if menu_return['exit']:
             running = False
