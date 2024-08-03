@@ -1,5 +1,7 @@
 import pygame as pg
 import numpy as np
+import cv2 as cv
+import mediapipe as mp
 from .pyfont import *
 
 
@@ -77,13 +79,15 @@ class GameMenu(Menu):
         self.left_score = 0
         self.right_score = 0
 
-        self.left_paddle = Paddle(screen_size * np.array([1/4, 1/2]))
-        self.right_paddle = Paddle(screen_size * np.array([3/4, 1/2]))
+        self.left_paddle = Paddle(center=screen_size * np.array([1/4, 1/2]))
+        self.right_paddle = Paddle(center=screen_size * np.array([3/4, 1/2]))
 
         self.ball = Ball(screen_size)
 
         self.left_goal = Goal(screen_size * np.array([0, 1/2]))
         self.right_goal = Goal(screen_size * np.array([1, 1/2]))
+        self.capture = cv.VideoCapture(0)
+        self.model = mp.solutions.face_detection.FaceDetection(model_selection=1, min_detection_confidence=1.0)
 
     def load(self):
         self.countdown = 3
@@ -103,7 +107,7 @@ class GameMenu(Menu):
         if self.countdown > 0:
             self.countdown -= dt
         else:
-            self.left_paddle.update(dt)
+            self.left_paddle.update(dt, self.capture, self.model)
             self.ball.update(dt)
     
             self.ball.check_collide_paddle(self.left_paddle)
