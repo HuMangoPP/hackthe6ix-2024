@@ -90,15 +90,18 @@ class GameMenu(Menu):
 
         self.frame = None
 
-    def load(self, menu_return: dict):
+    def reset(self):
         self.countdown = 3
-        self.left_score = 4
-        self.right_score = 4
 
         self.left_paddle.reset(self.screen_size * np.array([1/4, 1/2]))
         self.right_paddle.reset(self.screen_size * np.array([3/4, 1/2]))
 
         self.ball.reset()
+
+    def load(self, menu_return: dict):
+        self.reset()
+        self.left_score = 4
+        self.right_score = 4
 
     def update(self, dt: float, events: list[pg.Event]):
         menu_return = dict(
@@ -118,16 +121,50 @@ class GameMenu(Menu):
             self.ball.check_collide_paddle(self.right_paddle)
             if self.ball.check_collide_goal(self.left_goal):
                 self.right_score += 1
+                self.reset()
             if self.ball.check_collide_goal(self.right_goal):
                 self.left_score += 1
+                self.reset()
             
             if self.left_score >= 5 or self.right_score >= 5:
                 menu_return['new_menu'] = 'end'
                 menu_return['who_won'] = 1 if self.left_score >= 5 else 2
+                menu_return['left_score'] = self.left_score
+                menu_return['right_score'] = self.right_score
 
         return menu_return
     
     def render(self, display: pg.Surface):
+        if self.frame is not None:
+            cam = pg.surfarray.make_surface(self.frame.transpose(1, 0, 2)[::-1, :, :])
+            display.blit(pg.transform.scale(cam, self.screen_size), (0, 0))
+        self.font.render(
+            display, 
+            str(self.left_score),
+            self.screen_size[0] / 16,
+            self.screen_size[1] / 8,
+            (255, 255, 255),
+            self.screen_size[1] / 16,
+            style='center'
+        )
+        self.font.render(
+            display, 
+            str(self.right_score),
+            self.screen_size[0] * 15 / 16,
+            self.screen_size[1] / 8,
+            (255, 255, 255),
+            self.screen_size[1] / 16,
+            style='center'
+        )
+        self.left_paddle.render(display)
+        self.right_paddle.render(display)
+        self.ball.render(display)
+        self.left_goal.render(display)
+        self.right_goal.render(display)
+
+        pg.draw.line(display, (255, 255, 255), self.screen_size * np.array([1/2, 0]), self.screen_size * np.array([1/2, 1]), 5)
+        pg.draw.circle(display, (255, 255, 255), self.screen_size * np.array([1/2, 1/2]), 200, 5)
+
         if self.countdown > 0:
             self.font.render(
                 display,
@@ -138,36 +175,6 @@ class GameMenu(Menu):
                 self.screen_size[1] / 8,
                 style='center'
             )
-        else:
-            if self.frame is not None:
-                cam = pg.surfarray.make_surface(self.frame.transpose(1, 0, 2)[::-1, :, :])
-                display.blit(pg.transform.scale(cam, self.screen_size), (0, 0))
-            self.font.render(
-                display, 
-                str(self.left_score),
-                self.screen_size[0] / 16,
-                self.screen_size[1] / 8,
-                (255, 255, 255),
-                self.screen_size[1] / 16,
-                style='center'
-            )
-            self.font.render(
-                display, 
-                str(self.right_score),
-                self.screen_size[0] * 15 / 16,
-                self.screen_size[1] / 8,
-                (255, 255, 255),
-                self.screen_size[1] / 16,
-                style='center'
-            )
-            self.left_paddle.render(display)
-            self.right_paddle.render(display)
-            self.ball.render(display)
-            self.left_goal.render(display)
-            self.right_goal.render(display)
-
-            pg.draw.line(display, (255, 255, 255), self.screen_size * np.array([1/2, 0]), self.screen_size * np.array([1/2, 1]), 5)
-            pg.draw.circle(display, (255, 255, 255), self.screen_size * np.array([1/2, 1/2]), 200, 5)
 
 
 class EndMenu(Menu):
@@ -180,9 +187,13 @@ class EndMenu(Menu):
         self.goto_main_button.center = (screen_size[0] / 2, screen_size[1] / 2 + screen_size[1] / 6)
 
         self.who_won = 0
+        self.left_score = 0
+        self.right_score = 0
 
     def load(self, menu_return: dict):
         self.who_won = menu_return['who_won']
+        self.left_score = menu_return['left_score']
+        self.right_score = menu_return['right_score']
 
     def update(self, dt: float, events: list[pg.Event]):
         menu_return = dict(
@@ -202,6 +213,15 @@ class EndMenu(Menu):
         self.font.render(
             display,
             f'p{self.who_won} wins!',
+            self.screen_size[0] / 2,
+            self.screen_size[1] / 8,
+            (255, 255, 255),
+            self.screen_size[1] / 16,
+            style='center'
+        )
+        self.font.render(
+            display,
+            f'{self.left_score}-{self.right_score}',
             self.screen_size[0] / 2,
             self.screen_size[1] / 4,
             (255, 255, 255),
