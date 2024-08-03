@@ -9,7 +9,8 @@ def main():
     clock = pg.time.Clock()
     
     menus = dict(
-        start=StartMenu(screen_size)
+        start=StartMenu(screen_size),
+        game=GameMenu(screen_size)
     )
     current_menu = 'start'
 
@@ -28,7 +29,7 @@ def main():
         if menu_return['exit']:
             running = False
         if menu_return['new_menu']:
-            ...
+            current_menu = menu_return['new_menu']
 
         display.fill((67, 85, 125))
         menus[current_menu].render(display)

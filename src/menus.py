@@ -4,6 +4,9 @@ import pygame as pg
 class Menu:
     def __init__(self, screen_size: tuple):
         pass
+
+    def load(self):
+        pass
     
     def update(self, dt: float, events: list[pg.Event]):
         pass
@@ -37,3 +40,30 @@ class StartMenu(Menu):
     def render(self, display: pg.Surface):
         pg.draw.rect(display, (255, 0, 0), self.start_button)
         pg.draw.rect(display, (255, 0, 0), self.exit_button)
+
+
+class GameMenu(Menu):
+    def __init__(self, screen_size: tuple):
+        # from .paddle import ...
+        # from .ball import ...
+        # from .goal import ...
+        self.timer = 5
+    
+    def load(self):
+        self.timer = 5
+
+    def update(self, dt: float, events: list[pg.Event]):
+        menu_return = dict(
+            new_menu=None,
+            exit=False
+        )
+        self.timer -= dt
+        if self.timer <= 0:
+            menu_return['new_menu'] = 'end'
+
+        return menu_return
+    
+    def render(self, display: pg.Surface):
+        ...
+
+

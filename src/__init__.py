@@ -1,1 +1,1 @@
-from .menus import StartMenu
+from .menus import StartMenu, GameMenu
