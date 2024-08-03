@@ -7,10 +7,12 @@ def main():
     screen_size = (1280, 720)
     display = pg.display.set_mode(screen_size)
     clock = pg.time.Clock()
+    font = Font(pg.image.load('./src/pyfont/font.png').convert())
     
     menus = dict(
-        start=StartMenu(screen_size),
-        game=GameMenu(screen_size)
+        start=StartMenu(screen_size, font),
+        game=GameMenu(screen_size, font),
+        end=EndMenu(screen_size, font)
     )
     current_menu = 'start'
 
@@ -30,6 +32,7 @@ def main():
             running = False
         if menu_return['new_menu']:
             current_menu = menu_return['new_menu']
+            menus[current_menu].load()
 
         display.fill((67, 85, 125))
         menus[current_menu].render(display)

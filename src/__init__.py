@@ -1,1 +1,2 @@
-from .menus import StartMenu, GameMenu
+from .menus import StartMenu, GameMenu, EndMenu
+from .pyfont import Font
