@@ -37,7 +37,7 @@ def main():
                 running = False
             if menu_return['new_menu']:
                 current_menu = menu_return['new_menu']
-                menus[current_menu].load()
+                menus[current_menu].load(menu_return)
 
             display.fill((67, 85, 125))
             menus[current_menu].render(display)

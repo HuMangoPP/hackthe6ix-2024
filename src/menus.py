@@ -9,7 +9,7 @@ class Menu:
         self.screen_size = screen_size
         self.font = font
 
-    def load(self):
+    def load(self, menu_return: dict):
         pass
     
     def update(self, dt: float, events: list[pg.Event]):
@@ -90,10 +90,10 @@ class GameMenu(Menu):
 
         self.frame = None
 
-    def load(self):
+    def load(self, menu_return: dict):
         self.countdown = 3
-        self.left_score = 0
-        self.right_score = 0
+        self.left_score = 4
+        self.right_score = 4
 
         self.left_paddle.reset(self.screen_size * np.array([1/4, 1/2]))
         self.right_paddle.reset(self.screen_size * np.array([3/4, 1/2]))
@@ -119,6 +119,10 @@ class GameMenu(Menu):
                 self.right_score += 1
             if self.ball.check_collide_goal(self.right_goal):
                 self.left_score += 1
+            
+            if self.left_score >= 5 or self.right_score >= 5:
+                menu_return['new_menu'] = 'end'
+                menu_return['who_won'] = 1 if self.left_score >= 5 else 2
 
         return menu_return
     
@@ -170,7 +174,12 @@ class EndMenu(Menu):
 
         self.goto_main_button = pg.Rect(0, 0, screen_size[0] / 4, screen_size[1] / 8)
         self.goto_main_button.center = (screen_size[0] / 2, screen_size[1] / 2 + screen_size[1] / 6)
-    
+
+        self.who_won = 0
+
+    def load(self, menu_return: dict):
+        self.who_won = menu_return['who_won']
+
     def update(self, dt: float, events: list[pg.Event]):
         menu_return = dict(
             new_menu=None,
@@ -186,6 +195,16 @@ class EndMenu(Menu):
         return menu_return
     
     def render(self, display: pg.Surface):
+        self.font.render(
+            display,
+            f'p{self.who_won} wins!',
+            self.screen_size[0] / 2,
+            self.screen_size[1] / 4,
+            (255, 255, 255),
+            self.screen_size[1] / 16,
+            style='center'
+        )
+
         pg.draw.rect(display, (255, 0, 0), self.play_again_button)
         self.font.render(
             display, 
