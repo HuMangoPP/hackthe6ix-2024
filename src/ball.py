@@ -9,70 +9,90 @@ class Ball:
         self.screen_size = screen_size
         self.reset()
 
-        self.colour = (255, 255, 255)
+        self.colour = (0, 0, 255)
         self.size = 10
+
+        self.iframes = [0, 0]
     
     def reset(self):
-        self.xy = np.array(self.screen_size) / 2
-        self.vel = np.zeros(2, np.float32)
+        self.xy = np.array(self.screen_size) / 2 - np.array([100, 0])
+        self.prev_xy = self.xy.copy()
+        self.vel = np.array([0, 0])
+
+        self.iframes = [0, 0]
 
     def _check_collide_wall(self):
         if self.xy[0] <= self.size:
-            self.vel[0] = np.abs(self.vel[0]) * 0.9
+            self.vel[0] = np.abs(self.vel[0]) * 0.75
             self.xy[0] = self.size
         elif self.xy[0] >= self.screen_size[0] - self.size:
-            self.vel[0] = -np.abs(self.vel[0]) * 0.9
+            self.vel[0] = -np.abs(self.vel[0]) * 0.75
             self.xy[0] = self.screen_size[0] - self.size
 
         if self.xy[1] <= self.size:
-            self.vel[1] = np.abs(self.vel[1]) * 0.9
+            self.vel[1] = np.abs(self.vel[1]) * 0.75
             self.xy[1] = self.size
         elif self.xy[1] >= self.screen_size[1] - self.size:
-            self.vel[1] = -np.abs(self.vel[1]) * 0.9
+            self.vel[1] = -np.abs(self.vel[1]) * 0.75
             self.xy[1] = self.screen_size[1] - self.size
 
     def check_collide_paddle(self, paddle: Paddle):
+        if self.iframes[paddle.side] > 0:
+            self.iframes[paddle.side] -= 1
+            return 
+
         rotation = np.array([
             [np.cos(paddle.angle), -np.sin(paddle.angle)],
             [np.sin(paddle.angle), np.cos(paddle.angle)]
         ])
+        prev_paddle_xy = np.dot(rotation, paddle.prev_xy)
         paddle_xy = np.dot(rotation, paddle.xy)
+        paddle_vel = np.dot(rotation, paddle.vel)
+
+        prev_ball_xy = np.dot(rotation, self.prev_xy)
         ball_xy = np.dot(rotation, self.xy)
+        ball_vel = np.dot(rotation, self.vel)
 
-        if np.abs(ball_xy[0] - paddle_xy[0]) <= paddle.width / 2:
-            xoffset = 0
-        elif ball_xy[0] < paddle_xy[0]:
-            xoffset = ball_xy[0] - (paddle_xy[0] - paddle.width / 2)
-        else:
-            xoffset = ball_xy[0] - (paddle_xy[0] + paddle.width / 2)
+        prev_xoffset = prev_ball_xy[0] - prev_paddle_xy[0]
+        xoffset = ball_xy[0] - paddle_xy[0]
+        prev_yoffset = prev_ball_xy[1] - prev_paddle_xy[1]
+        yoffset = ball_xy[1] - paddle_xy[1]
+        collide = False
+        if (
+            np.sign(prev_xoffset) != np.sign(xoffset) and
+            (
+                min(np.abs(prev_yoffset), np.abs(yoffset)) <= paddle.height / 2 or
+                np.sign(prev_yoffset) != np.sign(yoffset)
+            )
+        ):
+            collide = True
+            ball_vel[0] = -ball_vel[0]
         
-        if np.abs(ball_xy[1] - paddle_xy[1]) <= paddle.height / 2:
-            yoffset = 0
-        elif ball_xy[1] < paddle_xy[1]:
-            yoffset = ball_xy[1] - (paddle_xy[1] - paddle.height / 2)
-        else:
-            yoffset = ball_xy[1] - (paddle_xy[1] + paddle.height / 2)
+        if (
+            np.sign(prev_yoffset) != np.sign(yoffset) and
+            (
+                min(np.abs(prev_xoffset), np.abs(xoffset)) <= paddle.width / 2 or
+                np.sign(prev_xoffset) != np.sign(xoffset)
+            )
+        ):
+            collide = True
+            ball_vel[1] = -ball_vel[1]
         
-        if xoffset ** 2 + yoffset ** 2 <= self.size ** 2:
-            ball_vel = np.dot(rotation, self.vel)
-            paddle_disp = np.dot(rotation, paddle.vel)
-            ball_spd = np.linalg.norm(ball_vel) * 0.9
-            if xoffset != 0:
-                ball_vel[0] = ball_spd * np.sign(xoffset)
-            if yoffset != 0:
-                ball_vel[1] = ball_spd * np.sign(yoffset)
-            ball_vel = ball_vel + paddle_disp / 2
-
-            if xoffset != 0 or yoffset != 0:
-                ball_xy = ball_xy - np.array([xoffset, yoffset]) + self.size * np.array([xoffset, yoffset]) / np.linalg.norm([xoffset, yoffset])
+        if collide:
+            ball_vel = ball_vel * 0.9 + paddle_vel * 0.9
+            self.iframes[paddle.side] = 5
+            
             
             inv_rotation = np.array([
                 [np.cos(-paddle.angle), -np.sin(-paddle.angle)],
                 [np.sin(-paddle.angle), np.cos(-paddle.angle)]
             ])
-            self.xy = np.dot(inv_rotation, ball_xy)
             self.vel = np.dot(inv_rotation, ball_vel)
-
+            self.xy = np.dot(inv_rotation, prev_ball_xy)
+        
+        spd = np.linalg.norm(self.vel)
+        if spd > 0:
+            self.vel = self.vel / spd * np.clip(spd, a_min=100, a_max=1000)
 
     def check_collide_goal(self, goal: Goal):
         if goal.rect.collidepoint(self.xy):
@@ -80,9 +100,9 @@ class Ball:
             return True
         return False
 
-
     def update(self, dt: float):
-        self.xy = self.xy + dt * self.vel
+        self.prev_xy = self.xy.copy()
+        self.xy = self.prev_xy + dt * self.vel
         self._check_collide_wall()
     
     def render(self, display: pg.Surface):

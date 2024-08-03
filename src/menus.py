@@ -121,8 +121,8 @@ class GameMenu(Menu):
 
     def load(self, menu_return: dict, settings_data: list[dict]):
         self.reset()
-        self.left_score = 4
-        self.right_score = 4
+        self.left_score = 0
+        self.right_score = 0
         
         for setting in settings_data:
             if (setting.text == "Ball Speed"):
@@ -133,15 +133,14 @@ class GameMenu(Menu):
             new_menu=None,
             exit=False
         )
+        ret, self.frame = self.capture.read()
+        self.frame = cv.cvtColor(self.frame, cv.COLOR_BGR2RGB)
+        self.left_paddle.update(dt, self.frame, self.face_detection)
+        self.right_paddle.update(dt, self.frame, self.face_detection)
+        self.ball.update(dt)
         if self.countdown > 0:
             self.countdown -= dt
         else:
-            ret, self.frame = self.capture.read()
-            self.frame = cv.cvtColor(self.frame, cv.COLOR_BGR2RGB)
-            self.left_paddle.update(dt, self.frame, self.face_detection)
-            self.right_paddle.update(dt, self.frame, self.face_detection)
-            self.ball.update(dt)
-    
             self.ball.check_collide_paddle(self.left_paddle)
             self.ball.check_collide_paddle(self.right_paddle)
             if self.ball.check_collide_goal(self.left_goal):

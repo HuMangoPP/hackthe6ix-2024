@@ -8,6 +8,7 @@ class Paddle:
         self.vel = np.zeros(2, np.float32)
         self.angle = 0
         self.xy = np.array(center, np.float32)
+        self.prev_xy = self.xy.copy()
 
         if (center[0] <= 960):
             self.side = 0 # left side
@@ -33,6 +34,7 @@ class Paddle:
     
     def reset(self, center: tuple):
         self.xy = np.array(center, np.float32)
+        self.prev_xy = self.xy.copy()
         width = self.width
         height = self.height
         self.corners = {
@@ -103,6 +105,7 @@ class Paddle:
         self.corners["bot_right"] = bot_right
 
         self.vel = (midpoint - self.xy) / dt
+        self.prev_xy = self.xy.copy()
         self.xy = midpoint
         self.angle = angle_from_horizontal
     
