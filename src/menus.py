@@ -1,6 +1,7 @@
 import pygame as pg
 import numpy as np
 import cv2 as cv
+from .options import Options
 from .pyfont import *
 
 
@@ -9,7 +10,7 @@ class Menu:
         self.screen_size = screen_size
         self.font = font
 
-    def load(self, menu_return: dict):
+    def load(self, menu_return: dict, settings_data: list[dict]):
         pass
     
     def update(self, dt: float, events: list[pg.Event]):
@@ -25,8 +26,11 @@ class StartMenu(Menu):
         self.start_button = pg.Rect(0, 0, screen_size[0] / 4, screen_size[1] / 8)
         self.start_button.center = (screen_size[0] / 2, screen_size[1] / 2)
 
+        self.settings_button = pg.Rect(0, 0, screen_size[0] / 4, screen_size[1] / 8)
+        self.settings_button.center = (screen_size[0] / 2, screen_size[1] / 2 + screen_size[1] / 6)
+
         self.exit_button = pg.Rect(0, 0, screen_size[0] / 4, screen_size[1] / 8)
-        self.exit_button.center = (screen_size[0] / 2, screen_size[1] / 2 + screen_size[1] / 6)
+        self.exit_button.center = (screen_size[0] / 2, screen_size[1] / 2 + 2 * screen_size[1] / 6)
 
     def update(self, dt: float, events: list[pg.Event]):
         menu_return = dict(
@@ -37,16 +41,18 @@ class StartMenu(Menu):
             if event.type == pg.MOUSEBUTTONUP:
                 if self.start_button.collidepoint(event.pos):
                     menu_return['new_menu'] = 'game'
+                if self.settings_button.collidepoint(event.pos):
+                    menu_return['new_menu'] = 'settings'
                 if self.exit_button.collidepoint(event.pos):
                     menu_return['exit'] = True
         
-        return menu_return
+        return menu_return, None
     
     def render(self, display: pg.Surface):
         pg.draw.rect(display, (255, 0, 0), self.start_button)
         self.font.render(
             display, 
-            'start', 
+            'Play', 
             self.start_button.centerx, 
             self.start_button.centery, 
             (255, 255, 255), 
@@ -54,10 +60,21 @@ class StartMenu(Menu):
             style='center'
         )
 
+        pg.draw.rect(display, (255, 0, 0), self.settings_button)
+        self.font.render(
+            display,
+            'Settings',
+            self.settings_button.centerx,
+            self.settings_button.centery,
+            (255, 255, 255),
+            self.screen_size[1] / 32,
+            style='center'
+        )
+
         pg.draw.rect(display, (255, 0, 0), self.exit_button)
         self.font.render(
             display, 
-            'end', 
+            'Exit', 
             self.exit_button.centerx, 
             self.exit_button.centery, 
             (255, 255, 255), 
@@ -90,6 +107,10 @@ class GameMenu(Menu):
 
         self.frame = None
 
+        self.ball_speed_options = [0.75, 0.9, 1.1]
+        self.goal_size_options = [100, 200, 300]
+        self.paddle_size_options = [100, 150, 200]
+
     def reset(self):
         self.countdown = 3
 
@@ -98,10 +119,14 @@ class GameMenu(Menu):
 
         self.ball.reset()
 
-    def load(self, menu_return: dict):
+    def load(self, menu_return: dict, settings_data: list[dict]):
         self.reset()
         self.left_score = 4
         self.right_score = 4
+        
+        for setting in settings_data:
+            if (setting.text == "Ball Speed"):
+                self.ball = Ball()
 
     def update(self, dt: float, events: list[pg.Event]):
         menu_return = dict(
@@ -132,7 +157,7 @@ class GameMenu(Menu):
                 menu_return['left_score'] = self.left_score
                 menu_return['right_score'] = self.right_score
 
-        return menu_return
+        return menu_return, None
     
     def render(self, display: pg.Surface):
         if self.frame is not None:
@@ -176,6 +201,91 @@ class GameMenu(Menu):
                 style='center'
             )
 
+class SettingsMenu(Menu):
+    def __init__(self, screen_size: tuple, font: Font):
+        super().__init__(screen_size, font)
+        self.save_button = pg.Rect(0, 0, screen_size[0] / 8, screen_size[1] / 16)
+        self.save_button.center = (screen_size[0] / 2, screen_size[1] * 5 / 6 )
+
+        self.choose_ball_speed = Options(
+            screen_size, screen_size[1] / 5, "Ball Speed",
+            {
+                "Slow": 0,
+                "Normal": 1,
+                "Fast": 2
+            },
+            font
+        )
+
+        self.choose_goal_size = Options(
+            screen_size, screen_size[1] * 2 / 5, "Goal Size",
+            {
+                "Small": 0,
+                "Medium": 1,
+                "Large": 2
+            },
+            font
+        )
+
+        self.choose_paddle_size = Options(
+            screen_size, screen_size[1] * 3 / 5, "Paddle Size",
+            {
+                "Small": 0,
+                "Medium": 1,
+                "Large": 2
+            },
+            font
+        )
+
+        self.close_button = pg.Rect(0, 0, screen_size[1] / 18, screen_size[1] / 18)
+        self.close_button.center = (screen_size[0] - screen_size[1] / 36 - 20, screen_size[1] / 36 + 20)
+
+    def update(self, dt: float, events: list[pg.Event]):
+        menu_return = dict(
+            new_menu=None,
+            exit=False
+        )
+        settings_data = []
+        for event in events:
+            if event.type == pg.MOUSEBUTTONUP:
+                settings_data.append(self.choose_ball_speed.update(event))
+                settings_data.append(self.choose_goal_size.update(event))
+                settings_data.append(self.choose_paddle_size.update(event))
+                if self.close_button.collidepoint(event.pos):
+                    menu_return['new_menu'] = 'start'
+                if self.save_button.collidepoint(event.pos):
+                    menu_return['new_menu'] = 'settings'
+        
+        return menu_return, settings_data
+
+    def render(self, display: pg.Surface):
+        pg.draw.rect(display, (255,0,0), self.save_button)
+        self.font.render(
+            display,
+            "Save",
+            self.save_button.centerx,
+            self.save_button.centery,
+            (255, 255, 255),
+            self.screen_size[1] / 30,
+            style="center"
+        )
+
+        pg.draw.rect(display, (255, 255, 255), self.close_button)
+        self.font.render(
+            display,
+            "",
+            self.close_button.centerx,
+            self.close_button.centery,
+            (255, 0, 0),
+            style="center"
+        )
+
+        self.choose_ball_speed.render(display)
+        self.choose_goal_size.render(display)
+        self.choose_paddle_size.render(display)
+
+        pg.draw.line(display, (255, 0, 0), self.close_button.topleft+np.array([10, 5]), self.close_button.bottomright-np.array([10,5]), 10)
+        pg.draw.line(display, (255, 0, 0), self.close_button.topright+np.array([-10,5]), self.close_button.bottomleft+np.array([10,-5]), 10)
 
 class EndMenu(Menu):
     def __init__(self, screen_size: tuple, font: Font):
@@ -207,7 +317,7 @@ class EndMenu(Menu):
                 if self.goto_main_button.collidepoint(event.pos):
                     menu_return['new_menu'] = 'start'
         
-        return menu_return
+        return menu_return, None
     
     def render(self, display: pg.Surface):
         self.font.render(

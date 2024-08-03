@@ -18,6 +18,7 @@ def main():
         menus = dict(
             start=StartMenu(screen_size, font),
             game=GameMenu(screen_size, font, capture, face_detection),
+            settings=SettingsMenu(screen_size, font),
             end=EndMenu(screen_size, font)
         )
         current_menu = 'start'
@@ -32,12 +33,12 @@ def main():
             
             dt = clock.get_time() / 1000
             clock.tick(60)
-            menu_return = menus[current_menu].update(dt, events)
+            menu_return, settings_data = menus[current_menu].update(dt, events)
             if menu_return['exit']:
                 running = False
             if menu_return['new_menu']:
                 current_menu = menu_return['new_menu']
-                menus[current_menu].load(menu_return)
+                menus[current_menu].load(menu_return, settings_data)
 
             display.fill((67, 85, 125))
             menus[current_menu].render(display)
