@@ -18,17 +18,17 @@ class Ball:
 
     def _check_collide_wall(self):
         if self.xy[0] <= self.size:
-            self.vel[0] = np.abs(self.vel[0])
+            self.vel[0] = np.abs(self.vel[0]) * 0.9
             self.xy[0] = self.size
         elif self.xy[0] >= self.screen_size[0] - self.size:
-            self.vel[0] = -np.abs(self.vel[0])
+            self.vel[0] = -np.abs(self.vel[0]) * 0.9
             self.xy[0] = self.screen_size[0] - self.size
 
         if self.xy[1] <= self.size:
-            self.vel[1] = np.abs(self.vel[1])
+            self.vel[1] = np.abs(self.vel[1]) * 0.9
             self.xy[1] = self.size
         elif self.xy[1] >= self.screen_size[1] - self.size:
-            self.vel[1] = -np.abs(self.vel[1])
+            self.vel[1] = -np.abs(self.vel[1]) * 0.9
             self.xy[1] = self.screen_size[1] - self.size
 
     def check_collide_paddle(self, paddle: Paddle):
@@ -56,12 +56,12 @@ class Ball:
         if xoffset ** 2 + yoffset ** 2 <= self.size ** 2:
             ball_vel = np.dot(rotation, self.vel)
             paddle_disp = np.dot(rotation, paddle.vel)
-            ball_spd = np.linalg.norm(ball_vel)
+            ball_spd = np.linalg.norm(ball_vel) * 0.9
             if xoffset != 0:
                 ball_vel[0] = ball_spd * np.sign(xoffset)
             if yoffset != 0:
                 ball_vel[1] = ball_spd * np.sign(yoffset)
-            ball_vel = ball_vel + paddle_disp
+            ball_vel = ball_vel + paddle_disp / 2
 
             if xoffset != 0 or yoffset != 0:
                 ball_xy = ball_xy - np.array([xoffset, yoffset]) + self.size * np.array([xoffset, yoffset]) / np.linalg.norm([xoffset, yoffset])
