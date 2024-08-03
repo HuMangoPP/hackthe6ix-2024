@@ -7,12 +7,11 @@ class Paddle:
     def __init__(self, center: tuple = (0,0), height: float = 200, width: float = 25, sprite_path: str = ""):
         self.vel = np.zeros(2, np.float32)
         self.angle = 0
-        self.ang_vel = np.zeros(2, np.float32)
         self.xy = np.array(center, np.float32)
 
         if (center[0] <= 960):
             self.side = 0 # left side
-        else: 
+        elif (center[0] >= 960): 
             self.side = 1 # right side
 
         self.colour = (255, 0, 0)
@@ -45,7 +44,10 @@ class Paddle:
         
     def find_closest_face(self, frame: np.array, face_detection):
         results = face_detection.process(frame)
-
+        """
+        if (not results.detections or len(results.detections) <= 1):
+            return None
+            """
         if (results.detections):
             distances = []
             for detection in results.detections:
@@ -79,6 +81,7 @@ class Paddle:
         angle_from_horizontal = 2 * np.arctan2(eye_points[0][1] - eye_points[1][1], eye_points[0][0] - eye_points[1][0])
 
         midpoint = (eye_points[0] + eye_points[1]) / 2 
+
         if (midpoint[0] - self.xy[0] >= 35):
             midpoint[0] = (midpoint[0] + self.xy[0]) * 0.5
         if (midpoint[1] - self.xy[1] >= 20):
@@ -87,6 +90,7 @@ class Paddle:
             return
         if (self.side == 1 and midpoint[0] < 960):
             return
+        
         rotation_matrix = self.rotation_matrix(angle_from_horizontal)
         top_left = midpoint + np.dot(rotation_matrix, np.array([-self.width / 2, -self.height / 2]))
         top_right = midpoint + np.dot(rotation_matrix, np.array([self.width / 2, -self.height / 2]))
@@ -95,7 +99,6 @@ class Paddle:
 
         # compute rotation angle
         angle = angle_from_horizontal - self.angle
-        self.ang_vel = angle / dt
 
         self.corners["top_left"] = top_left
         self.corners["top_right"] = top_right
@@ -106,11 +109,6 @@ class Paddle:
         self.xy = midpoint
         self.angle = angle_from_horizontal
     
-    def compute_transferred_velocity(self, point_of_collision: tuple, xoffset: float, yoffset: float):
-        tangent_vel = self.ang_vel * np.linalg.norm(self.xy - np.array(point_of_collision)) * np.sign(np.array([xoffset, yoffset]))
-
-        return tangent_vel + self.vel
-
     def render(self, display: pg.Surface):
         if (self.sprite is None):
             pg.draw.circle(display, (0,255, 0), self.eye_points[0], radius=5)
