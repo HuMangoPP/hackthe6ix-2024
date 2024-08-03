@@ -89,4 +89,3 @@ class Paddle:
             pg.draw.rect(display, self.colour, paddle)
         else:
             display.blit(self.sprite, paddle)
-

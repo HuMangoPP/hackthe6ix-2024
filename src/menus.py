@@ -65,39 +65,91 @@ class StartMenu(Menu):
         )
 
 
-
 class GameMenu(Menu):
     def __init__(self, screen_size: tuple, font: Font):
         super().__init__(screen_size, font)
-        # from .paddle import ...
-        # from .ball import ...
-        # from .goal import ...
-        self.timer = 5
-    
+        from .paddle import Paddle
+        from .ball import Ball
+        from .goal import Goal
+
+        self.countdown = 3
+
+        self.left_score = 0
+        self.right_score = 0
+
+        self.left_paddle = Paddle(screen_size * np.array([1/4, 1/2]))
+        self.right_paddle = Paddle(screen_size * np.array([3/4, 1/2]))
+
+        self.ball = Ball(screen_size)
+
+        self.left_goal = Goal(screen_size * np.array([0, 1/2]))
+        self.right_goal = Goal(screen_size * np.array([1, 1/2]))
+
     def load(self):
-        self.timer = 5
+        self.countdown = 3
+        self.left_score = 0
+        self.right_score = 0
+
+        self.left_paddle.reset(self.screen_size * np.array([1/4, 1/2]))
+        self.right_paddle.reset(self.screen_size * np.array([3/4, 1/2]))
+
+        self.ball.reset()
 
     def update(self, dt: float, events: list[pg.Event]):
         menu_return = dict(
             new_menu=None,
             exit=False
         )
-        self.timer -= dt
-        if self.timer <= 0:
-            menu_return['new_menu'] = 'end'
+        if self.countdown > 0:
+            self.countdown -= dt
+        else:
+            self.left_paddle.update(dt)
+            self.ball.update(dt)
+    
+            self.ball.check_collide_paddle(self.left_paddle)
+            self.ball.check_collide_paddle(self.right_paddle)
+            if self.ball.check_collide_goal(self.left_goal):
+                self.right_score += 1
+            if self.ball.check_collide_goal(self.right_goal):
+                self.left_score += 1
 
         return menu_return
     
     def render(self, display: pg.Surface):
-        self.font.render(
-            display,
-            f'{int(np.ceil(self.timer))}',
-            self.screen_size[0] / 2,
-            self.screen_size[1] / 2,
-            (255, 255, 255),
-            self.screen_size[1] / 16,
-            style='center'
-        )
+        if self.countdown > 0:
+            self.font.render(
+                display,
+                str(int(np.ceil(self.countdown))),
+                self.screen_size[0] / 2,
+                self.screen_size[1] / 2,
+                (255, 255, 255),
+                self.screen_size[1] / 8,
+                style='center'
+            )
+        else:
+            self.font.render(
+                display, 
+                str(self.left_score),
+                self.screen_size[0] / 16,
+                self.screen_size[1] / 8,
+                (255, 255, 255),
+                self.screen_size[1] / 16,
+                style='center'
+            )
+            self.font.render(
+                display, 
+                str(self.right_score),
+                self.screen_size[0] * 15 / 16,
+                self.screen_size[1] / 8,
+                (255, 255, 255),
+                self.screen_size[1] / 16,
+                style='center'
+            )
+            self.left_paddle.render(display)
+            self.right_paddle.render(display)
+            self.ball.render(display)
+            self.left_goal.render(display)
+            self.right_goal.render(display)
 
 
 class EndMenu(Menu):
