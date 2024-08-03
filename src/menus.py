@@ -1,7 +1,5 @@
 import pygame as pg
 import numpy as np
-import cv2 as cv
-import mediapipe as mp
 from .pyfont import *
 
 
@@ -68,7 +66,7 @@ class StartMenu(Menu):
 
 
 class GameMenu(Menu):
-    def __init__(self, screen_size: tuple, font: Font):
+    def __init__(self, screen_size: tuple, font: Font, capture, face_detection):
         super().__init__(screen_size, font)
         from .paddle import Paddle
         from .ball import Ball
@@ -86,8 +84,10 @@ class GameMenu(Menu):
 
         self.left_goal = Goal(screen_size * np.array([0, 1/2]))
         self.right_goal = Goal(screen_size * np.array([1, 1/2]))
-        self.capture = cv.VideoCapture(0)
-        self.model = mp.solutions.face_detection.FaceDetection(model_selection=1, min_detection_confidence=1.0)
+        self.capture = capture
+        self.face_detection = face_detection
+
+        self.frame = None
 
     def load(self):
         self.countdown = 3
@@ -107,7 +107,8 @@ class GameMenu(Menu):
         if self.countdown > 0:
             self.countdown -= dt
         else:
-            self.left_paddle.update(dt, self.capture, self.model)
+            ret, self.frame = self.capture.read()
+            self.left_paddle.update(dt, self.frame, self.face_detection)
             self.ball.update(dt)
     
             self.ball.check_collide_paddle(self.left_paddle)
@@ -131,6 +132,9 @@ class GameMenu(Menu):
                 style='center'
             )
         else:
+            if self.frame is not None:
+                cam = pg.surfarray.make_surface(self.frame.transpose(1, 0, 2)[::-1, :, :])
+                display.blit(pg.transform.scale(cam, self.screen_size), (0, 0))
             self.font.render(
                 display, 
                 str(self.left_score),
