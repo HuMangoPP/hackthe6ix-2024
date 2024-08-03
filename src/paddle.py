@@ -4,7 +4,7 @@ import numpy as np
 import mediapipe as mp
 
 class Paddle:
-    def __init__(self, center: tuple = (0,0), height: float = 60, width: float = 15, sprite_path: str = ""):
+    def __init__(self, center: tuple = (0,0), height: float = 200, width: float = 25, sprite_path: str = ""):
         self.vel = np.zeros(2, np.float32)
         self.angle = 0
         self.ang_vel = np.zeros(2, np.float32)
@@ -66,10 +66,16 @@ class Paddle:
             return
         
         eye_points = np.array([(p.x * 1920, p.y * 1080) for p in face.location_data.relative_keypoints][0:2])
+        difference = np.abs(eye_points[0] - self.eye_points[0])
+        if (difference[0] <= 13 and difference[1] <= 10):
+            return
+        
         self.eye_points = eye_points
-        angle_from_horizontal = np.arctan2(eye_points[0][1] - eye_points[1][1], eye_points[0][0] - eye_points[1][0])
+        angle_from_horizontal = 2 * np.arctan2(eye_points[0][1] - eye_points[1][1], eye_points[0][0] - eye_points[1][0])
 
-        midpoint = (eye_points[0] + eye_points[1]) / 2
+        midpoint = (eye_points[0] + eye_points[1]) / 2 
+        if (midpoint[0] - self.xy[0] >= 20):
+            midpoint = (midpoint + self.xy) * 0.5
         rotation_matrix = self.rotation_matrix(angle_from_horizontal)
         top_left = midpoint + np.dot(rotation_matrix, np.array([-self.width / 2, -self.height / 2]))
         top_right = midpoint + np.dot(rotation_matrix, np.array([self.width / 2, -self.height / 2]))
