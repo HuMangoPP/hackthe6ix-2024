@@ -20,6 +20,8 @@ class Paddle:
             "bot_right": np.array([center[0] + width / 2, center[1] + height / 2])
         }
 
+        self.eye_points = [[0,0],[0,0]]
+
         if (sprite_path == ""):
             self.sprite = None
         else:
@@ -64,7 +66,9 @@ class Paddle:
             return
         
         eye_points = np.array([(p.x * 1920, p.y * 1080) for p in face.location_data.relative_keypoints][0:2])
+        self.eye_points = eye_points
         angle_from_horizontal = np.arctan2(eye_points[0][1] - eye_points[1][1], eye_points[0][0] - eye_points[1][0])
+
         midpoint = (eye_points[0] + eye_points[1]) / 2
         rotation_matrix = self.rotation_matrix(angle_from_horizontal)
         top_left = midpoint + np.dot(rotation_matrix, np.array([-self.width / 2, -self.height / 2]))
@@ -92,6 +96,8 @@ class Paddle:
 
     def render(self, display: pg.Surface):
         if (self.sprite is None):
+            pg.draw.circle(display, (0,255, 0), self.eye_points[0], radius=5)
+            pg.draw.circle(display, (0, 255, 0), self.eye_points[1], radius=5)
             pg.draw.polygon(display, self.colour, [
                 self.corners['top_left'],
                 self.corners['top_right'],

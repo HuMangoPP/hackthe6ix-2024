@@ -1,5 +1,6 @@
 import pygame as pg
 import numpy as np
+import cv2 as cv
 from .pyfont import *
 
 
@@ -108,6 +109,7 @@ class GameMenu(Menu):
             self.countdown -= dt
         else:
             ret, self.frame = self.capture.read()
+            self.frame = cv.cvtColor(self.frame, cv.COLOR_BGR2RGB)
             self.left_paddle.update(dt, self.frame, self.face_detection)
             self.ball.update(dt)
     
