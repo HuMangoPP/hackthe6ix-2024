@@ -111,6 +111,7 @@ class GameMenu(Menu):
             ret, self.frame = self.capture.read()
             self.frame = cv.cvtColor(self.frame, cv.COLOR_BGR2RGB)
             self.left_paddle.update(dt, self.frame, self.face_detection)
+            self.right_paddle.update(dt, self.frame, self.face_detection)
             self.ball.update(dt)
     
             self.ball.check_collide_paddle(self.left_paddle)
@@ -164,6 +165,9 @@ class GameMenu(Menu):
             self.ball.render(display)
             self.left_goal.render(display)
             self.right_goal.render(display)
+
+            pg.draw.line(display, (255, 255, 255), self.screen_size * np.array([1/2, 0]), self.screen_size * np.array([1/2, 1]), 5)
+            pg.draw.circle(display, (255, 255, 255), self.screen_size * np.array([1/2, 1/2]), 200, 5)
 
 
 class EndMenu(Menu):
