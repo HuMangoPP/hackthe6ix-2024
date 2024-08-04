@@ -66,7 +66,7 @@ def main():
                     osts['idle'].set_volume(0.5)
                     osts['battle'].set_volume(0.5)
 
-            display.fill((90, 120, 200))
+            display.fill((30, 40, 60))
             menus[current_menu].render(display)
             pg.display.flip()
 

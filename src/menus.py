@@ -272,9 +272,10 @@ class GameMenu(Menu):
         return menu_return
     
     def render(self, display: pg.Surface):
-        # if self.frame is not None:
-        #     cam = pg.surfarray.make_surface(self.frame.transpose(1, 0, 2)[::-1, :, :])
-        #     display.blit(pg.transform.scale(cam, self.screen_size), (0, 0))
+        if self.frame is not None:
+            cam = pg.surfarray.make_surface(self.frame.transpose(1, 0, 2)[::-1, :, :])
+            cam.set_alpha(100)
+            display.blit(pg.transform.scale(cam, self.screen_size), (0, 0))
         self.font.render(
             display, 
             str(self.left_score),
