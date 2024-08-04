@@ -3,14 +3,91 @@ import numpy as np
 import cv2 as cv
 from .options import Options
 from .pyfont import *
+from .paddle import Paddle
+from .ball import Ball
+from .goal import Goal
 
+DEFAULT_SETTINGS = [
+  [
+      {
+          "text": "Slow",
+          "value": 0,
+          "selected": False
+      },
+      {
+          "text": "Normal",
+          "value": 1,
+          "selected": True
+      },
+      {
+          "text": "Fast",
+          "value": 2,
+          "selected": False
+      }
+  ],
+
+  [
+      {
+          "text": "Small",
+          "value": 0,
+          "selected": False
+      },
+      {
+          "text": "Medium",
+          "value": 1,
+          "selected": True
+      },
+      {
+          "text": "Large",
+          "value": 2,
+          "selected": False
+      }
+  ],
+  [
+      {
+          "text": "Small",
+          "value": 0,
+          "selected": False
+      },
+      {
+          "text": "Medium",
+          "value": 1,
+          "selected": True
+      },
+      {
+          "text": "Large",
+          "value": 2,
+          "selected": False
+      }
+  ]
+]
+
+DEFAULT_SELECTED_SETTINGS = [
+      {
+          "text": "Normal",
+          "value": 1,
+          "selected": True
+      },
+      {
+          "text": "Medium",
+          "value": 1,
+          "selected": True
+      },
+      {
+          "text": "Medium",
+          "value": 1,
+          "selected": True
+      }
+]
+
+selected_settings = DEFAULT_SELECTED_SETTINGS
 
 class Menu:
     def __init__(self, screen_size: tuple, font: Font):
         self.screen_size = screen_size
         self.font = font
 
-    def load(self, menu_return: dict, settings_data: list[dict]):
+    def load(self, menu_return: dict):
         pass
     
     def update(self, dt: float, events: list[pg.Event]):
@@ -46,7 +123,7 @@ class StartMenu(Menu):
                 if self.exit_button.collidepoint(event.pos):
                     menu_return['exit'] = True
         
-        return menu_return, None
+        return menu_return
     
     def render(self, display: pg.Surface):
         pg.draw.rect(display, (255, 0, 0), self.start_button)
@@ -86,9 +163,6 @@ class StartMenu(Menu):
 class GameMenu(Menu):
     def __init__(self, screen_size: tuple, font: Font, capture, face_detection):
         super().__init__(screen_size, font)
-        from .paddle import Paddle
-        from .ball import Ball
-        from .goal import Goal
 
         self.countdown = 3
 
@@ -108,25 +182,33 @@ class GameMenu(Menu):
         self.frame = None
 
         self.ball_speed_options = [0.75, 0.9, 1.1]
+        self.ball_speed = 0.9
         self.goal_size_options = [100, 200, 300]
-        self.paddle_size_options = [100, 150, 200]
+        self.goal_size = 200
+        self.paddle_size_options = [150, 200, 250]
+        self.paddle_size = 200
 
     def reset(self):
         self.countdown = 3
 
-        self.left_paddle.reset(self.screen_size * np.array([1/4, 1/2]))
-        self.right_paddle.reset(self.screen_size * np.array([3/4, 1/2]))
+        self.left_paddle.reset(self.screen_size * np.array([1/4, 1/2]), self.paddle_size)
+        self.right_paddle.reset(self.screen_size * np.array([3/4, 1/2]), self.paddle_size)
 
         self.ball.reset()
 
-    def load(self, menu_return: dict, settings_data: list[dict]):
+    def load(self, menu_return: dict):
         self.reset()
         self.left_score = 0
         self.right_score = 0
-        
-        for setting in settings_data:
-            if (setting.text == "Ball Speed"):
-                self.ball = Ball()
+        self.ball_speed = self.ball_speed_options[selected_settings[0]["value"]]
+        self.ball = Ball(self.screen_size, self.ball_speed)
+        self.goal_size = self.goal_size_options[selected_settings[1]["value"]]
+        print(self.goal_size)
+        self.left_goal = Goal(self.screen_size * np.array([0, 1/2]), height=self.goal_size)
+        self.right_goal = Goal(self.screen_size * np.array([1, 1/2]), height=self.goal_size)
+        self.paddle_size = self.paddle_size_options[selected_settings[2]["value"]]
+        self.left_paddle = Paddle(self.screen_size * np.array([1/4, 1/2]), self.paddle_size) 
+        self.right_paddle = Paddle(self.screen_size * np.array([3/4, 1/2]), self.paddle_size)
 
     def update(self, dt: float, events: list[pg.Event]):
         menu_return = dict(
@@ -156,7 +238,7 @@ class GameMenu(Menu):
                 menu_return['left_score'] = self.left_score
                 menu_return['right_score'] = self.right_score
 
-        return menu_return, None
+        return menu_return
     
     def render(self, display: pg.Surface):
         if self.frame is not None:
@@ -213,7 +295,7 @@ class SettingsMenu(Menu):
                 "Normal": 1,
                 "Fast": 2
             },
-            font
+            font, settings_data = DEFAULT_SETTINGS[0]
         )
 
         self.choose_goal_size = Options(
@@ -223,7 +305,7 @@ class SettingsMenu(Menu):
                 "Medium": 1,
                 "Large": 2
             },
-            font
+            font, settings_data = DEFAULT_SETTINGS[1]
         )
 
         self.choose_paddle_size = Options(
@@ -233,13 +315,14 @@ class SettingsMenu(Menu):
                 "Medium": 1,
                 "Large": 2
             },
-            font
+            font, settings_data = DEFAULT_SETTINGS[2]
         )
 
         self.close_button = pg.Rect(0, 0, screen_size[1] / 18, screen_size[1] / 18)
         self.close_button.center = (screen_size[0] - screen_size[1] / 36 - 20, screen_size[1] / 36 + 20)
 
     def update(self, dt: float, events: list[pg.Event]):
+        global selected_settings
         menu_return = dict(
             new_menu=None,
             exit=False
@@ -254,8 +337,8 @@ class SettingsMenu(Menu):
                     menu_return['new_menu'] = 'start'
                 if self.save_button.collidepoint(event.pos):
                     menu_return['new_menu'] = 'settings'
-        
-        return menu_return, settings_data
+                    selected_settings = settings_data
+        return menu_return
 
     def render(self, display: pg.Surface):
         pg.draw.rect(display, (255,0,0), self.save_button)
@@ -316,7 +399,7 @@ class EndMenu(Menu):
                 if self.goto_main_button.collidepoint(event.pos):
                     menu_return['new_menu'] = 'start'
         
-        return menu_return, None
+        return menu_return
     
     def render(self, display: pg.Surface):
         self.font.render(

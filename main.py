@@ -33,12 +33,12 @@ def main():
             
             dt = clock.get_time() / 1000
             clock.tick(60)
-            menu_return, settings_data = menus[current_menu].update(dt, events)
+            menu_return = menus[current_menu].update(dt, events)
             if menu_return['exit']:
                 running = False
             if menu_return['new_menu']:
                 current_menu = menu_return['new_menu']
-                menus[current_menu].load(menu_return, settings_data)
+                menus[current_menu].load(menu_return)
 
             display.fill((67, 85, 125))
             menus[current_menu].render(display)
