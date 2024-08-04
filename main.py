@@ -23,6 +23,11 @@ def main():
             end=EndMenu(screen_size, font)
         )
         current_menu = 'start'
+
+        osts = dict(
+            game=pg.mixer.Sound('./assets/battle_theme.mp3')
+        )
+        osts['game'].set_volume(0.4)
         running = True
         while running:
             events = pg.event.get()
@@ -41,7 +46,10 @@ def main():
                 current_menu = menu_return['new_menu']
                 menus[current_menu].load(menu_return)
 
-            display.fill((30, 40, 60))
+                if current_menu == 'game':
+                    osts['game'].play(-1)
+
+            display.fill((90, 120, 200))
             menus[current_menu].render(display)
             pg.display.flip()
 

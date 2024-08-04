@@ -220,6 +220,7 @@ class GameMenu(Menu):
         self.left_paddle = Paddle(self.screen_size * np.array([1/4, 1/2]), self.paddle_size, sprite_path='./assets/goose.png') 
         self.right_paddle = Paddle(self.screen_size * np.array([3/4, 1/2]), self.paddle_size, sprite_path='./assets/goose.png')
 
+
     def update(self, dt: float, events: list[pg.Event]):
         menu_return = dict(
             new_menu=None,
