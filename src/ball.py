@@ -5,10 +5,11 @@ from .goal import Goal
 
 
 class Ball:
-    def __init__(self, screen_size: tuple, sprite_path: str = ''):
+    def __init__(self, screen_size: tuple, sprite_path: str = '', speed_mult: float = 0.9):
         self.screen_size = screen_size
         self.reset()
 
+        self.speed_mult = speed_mult
         self.colour = (0, 0, 255)
         self.size = 20
 
@@ -32,17 +33,17 @@ class Ball:
 
     def _check_collide_wall(self):
         if self.xy[0] <= self.size:
-            self.vel[0] = np.abs(self.vel[0]) * 0.75
+            self.vel[0] = np.abs(self.vel[0]) * self.speed_mult
             self.xy[0] = self.size
         elif self.xy[0] >= self.screen_size[0] - self.size:
-            self.vel[0] = -np.abs(self.vel[0]) * 0.75
+            self.vel[0] = -np.abs(self.vel[0]) * self.speed_mult
             self.xy[0] = self.screen_size[0] - self.size
 
         if self.xy[1] <= self.size:
-            self.vel[1] = np.abs(self.vel[1]) * 0.75
+            self.vel[1] = np.abs(self.vel[1]) * self.speed_mult
             self.xy[1] = self.size
         elif self.xy[1] >= self.screen_size[1] - self.size:
-            self.vel[1] = -np.abs(self.vel[1]) * 0.75
+            self.vel[1] = -np.abs(self.vel[1]) * self.speed_mult
             self.xy[1] = self.screen_size[1] - self.size
 
     def check_collide_paddle(self, paddle: Paddle):
@@ -88,7 +89,7 @@ class Ball:
             ball_vel[1] = -ball_vel[1]
         
         if collide:
-            ball_vel = ball_vel * 0.9 + paddle_vel * 0.9
+            ball_vel = ball_vel * self.speed_mult + paddle_vel * self.speed_mult
             self.iframes[paddle.side] = 5
             self.honk.play()
             

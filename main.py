@@ -19,6 +19,7 @@ def main():
         menus = dict(
             start=StartMenu(screen_size, font),
             game=GameMenu(screen_size, font, capture, face_detection),
+            settings=SettingsMenu(screen_size, font),
             end=EndMenu(screen_size, font)
         )
         current_menu = 'start'

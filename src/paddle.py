@@ -36,11 +36,11 @@ class Paddle:
                 sprite = pg.transform.flip(sprite, True, False)
             self.sprite = pg.transform.scale_by(sprite, self.height / sprite.get_height())
     
-    def reset(self, center: tuple):
+    def reset(self, center: tuple, height: float):
         self.xy = np.array(center, np.float32)
         self.prev_xy = self.xy.copy()
         width = self.width
-        height = self.height
+        self.height = height
         self.corners = {
             "top_left": np.array([center[0] - width / 2, center[1] - height / 2]),
             "top_right": np.array([center[0] + width / 2, center[1] - height / 2]),
