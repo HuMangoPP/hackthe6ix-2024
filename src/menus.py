@@ -206,14 +206,13 @@ class GameMenu(Menu):
         self.left_paddle.reset(self.screen_size * np.array([1/4, 1/2]), self.paddle_size)
         self.right_paddle.reset(self.screen_size * np.array([3/4, 1/2]), self.paddle_size)
 
-        self.ball.reset()
-
     def load(self, menu_return: dict):
         self.reset()
         self.left_score = 0
         self.right_score = 0
         self.ball_speed = self.ball_speed_options[selected_settings[0]["value"]]
         self.ball = Ball(self.screen_size, sprite_path='./assets/apple_core.png', speed_mult=self.ball_speed)
+        self.ball.reset(2)
         self.goal_size = self.goal_size_options[selected_settings[1]["value"]]
         self.left_goal = Goal(self.screen_size * np.array([0, 1/2]), sprite_path='./assets/garbage_bin.png', height=self.goal_size)
         self.right_goal = Goal(self.screen_size * np.array([1, 1/2]), sprite_path='./assets/garbage_bin.png', height=self.goal_size)
@@ -224,7 +223,7 @@ class GameMenu(Menu):
     def update(self, dt: float, events: list[pg.Event]):
         menu_return = dict(
             new_menu=None,
-            exit=FalseB
+            exit=False
         )
         ret, self.frame = self.capture.read()
         self.frame = cv.cvtColor(self.frame, cv.COLOR_BGR2RGB)
@@ -236,10 +235,10 @@ class GameMenu(Menu):
         else:
             self.ball.check_collide_paddle(self.left_paddle)
             self.ball.check_collide_paddle(self.right_paddle)
-            if self.ball.check_collide_goal(self.left_goal):
+            if self.ball.check_collide_goal(self.left_goal, 0):
                 self.right_score += 1
                 self.reset()
-            if self.ball.check_collide_goal(self.right_goal):
+            if self.ball.check_collide_goal(self.right_goal, 1):
                 self.left_score += 1
                 self.reset()
             
@@ -252,9 +251,9 @@ class GameMenu(Menu):
         return menu_return
     
     def render(self, display: pg.Surface):
-        if self.frame is not None:
-            cam = pg.surfarray.make_surface(self.frame.transpose(1, 0, 2)[::-1, :, :])
-            display.blit(pg.transform.scale(cam, self.screen_size), (0, 0))
+        # if self.frame is not None:
+        #     cam = pg.surfarray.make_surface(self.frame.transpose(1, 0, 2)[::-1, :, :])
+        #     display.blit(pg.transform.scale(cam, self.screen_size), (0, 0))
         self.font.render(
             display, 
             str(self.left_score),

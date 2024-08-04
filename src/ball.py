@@ -7,7 +7,7 @@ from .goal import Goal
 class Ball:
     def __init__(self, screen_size: tuple, sprite_path: str = '', speed_mult: float = 0.9):
         self.screen_size = screen_size
-        self.reset()
+        self.reset(2)
 
         self.speed_mult = speed_mult
         self.colour = (0, 0, 255)
@@ -24,8 +24,14 @@ class Ball:
         
         self.honk = pg.mixer.Sound('./assets/honk.mp3')
     
-    def reset(self):
-        self.xy = np.array(self.screen_size) / 2 - np.array([100, 0])
+    def reset(self, side: int):
+        self.xy = np.array(self.screen_size) / 2
+        if side == 0:
+            self.xy = self.xy + np.array([-200, 0])
+        elif side == 1:
+            self.xy = self.xy + np.array([200, 0])
+        else:
+            self.xy = self.xy + 200 * np.array([np.random.randint(2) * 2 - 1, 0])
         self.prev_xy = self.xy.copy()
         self.vel = np.array([0, 0])
 
@@ -105,9 +111,9 @@ class Ball:
         if spd > 0:
             self.vel = self.vel / spd * np.clip(spd, a_min=100, a_max=1000)
 
-    def check_collide_goal(self, goal: Goal):
+    def check_collide_goal(self, goal: Goal, side: int):
         if goal.rect.collidepoint(self.xy):
-            self.reset()
+            self.reset(side)
             return True
         return False
 

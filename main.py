@@ -41,7 +41,7 @@ def main():
                 current_menu = menu_return['new_menu']
                 menus[current_menu].load(menu_return)
 
-            display.fill((67, 85, 125))
+            display.fill((30, 40, 60))
             menus[current_menu].render(display)
             pg.display.flip()
 
