@@ -169,13 +169,25 @@ class GameMenu(Menu):
         self.left_score = 0
         self.right_score = 0
 
-        self.left_paddle = Paddle(center=screen_size * np.array([1/4, 1/2]))
-        self.right_paddle = Paddle(center=screen_size * np.array([3/4, 1/2]))
+        self.left_paddle = Paddle(
+            center=screen_size * np.array([1/4, 1/2]),
+            sprite_path='./assets/goose.png'
+        )
+        self.right_paddle = Paddle(
+            center=screen_size * np.array([3/4, 1/2]),
+            sprite_path='./assets/goose.png'
+        )
 
-        self.ball = Ball(screen_size)
+        self.ball = Ball(screen_size, sprite_path='./assets/crumpled_paper.png')
 
-        self.left_goal = Goal(screen_size * np.array([0, 1/2]))
-        self.right_goal = Goal(screen_size * np.array([1, 1/2]))
+        self.left_goal = Goal(
+            screen_size * np.array([0, 1/2]),
+            sprite_path='./assets/garbage_bin.png'
+        )
+        self.right_goal = Goal(
+            screen_size * np.array([1, 1/2]),
+            sprite_path='./assets/garbage_bin.png'
+        )
         self.capture = capture
         self.face_detection = face_detection
 

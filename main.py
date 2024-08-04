@@ -6,6 +6,7 @@ from src import *
 
 def main():
     pg.init()
+    pg.mixer.init()
     screen_size = (1920, 1080)
     display = pg.display.set_mode(screen_size)
     clock = pg.time.Clock()
