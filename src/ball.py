@@ -5,14 +5,23 @@ from .goal import Goal
 
 
 class Ball:
-    def __init__(self, screen_size: tuple):
+    def __init__(self, screen_size: tuple, sprite_path: str = ''):
         self.screen_size = screen_size
         self.reset()
 
         self.colour = (0, 0, 255)
-        self.size = 10
+        self.size = 20
 
         self.iframes = [0, 0]
+
+        if sprite_path:
+            sprite = pg.image.load(sprite_path).convert()
+            sprite.set_colorkey((255, 0, 0))
+            self.sprite = pg.transform.scale_by(sprite, self.size * 2 / sprite.get_width())
+        else:
+            self.sprite = None
+        
+        self.honk = pg.mixer.Sound('./assets/honk.mp3')
     
     def reset(self):
         self.xy = np.array(self.screen_size) / 2 - np.array([100, 0])
@@ -81,6 +90,7 @@ class Ball:
         if collide:
             ball_vel = ball_vel * 0.9 + paddle_vel * 0.9
             self.iframes[paddle.side] = 5
+            self.honk.play()
             
             
             inv_rotation = np.array([
@@ -106,6 +116,11 @@ class Ball:
         self._check_collide_wall()
     
     def render(self, display: pg.Surface):
-        pg.draw.circle(display, self.colour, self.xy.astype(float), self.size)
+        if self.sprite is not None:
+            rect = self.sprite.get_rect()
+            rect.center = self.xy
+            display.blit(self.sprite, rect)
+        else:
+            pg.draw.circle(display, self.colour, self.xy.astype(float), self.size)
 
     

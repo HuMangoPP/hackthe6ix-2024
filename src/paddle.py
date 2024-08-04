@@ -4,7 +4,7 @@ import numpy as np
 import mediapipe as mp
 
 class Paddle:
-    def __init__(self, center: tuple = (0,0), height: float = 200, width: float = 25, sprite_path: str = ""):
+    def __init__(self, center: tuple = (0,0), height: float = 200, width: float = 50, sprite_path: str = ""):
         self.vel = np.zeros(2, np.float32)
         self.angle = 0
         self.xy = np.array(center, np.float32)
@@ -30,7 +30,11 @@ class Paddle:
         if (sprite_path == ""):
             self.sprite = None
         else:
-            self.sprite = pg.transform.smoothscale(pg.image.load(sprite_path), (self.width, self.height))
+            sprite = pg.image.load(sprite_path).convert()
+            sprite.set_colorkey((255, 0, 0))
+            if self.side == 1:
+                sprite = pg.transform.flip(sprite, True, False)
+            self.sprite = pg.transform.scale_by(sprite, self.height / sprite.get_height())
     
     def reset(self, center: tuple):
         self.xy = np.array(center, np.float32)
@@ -119,3 +123,11 @@ class Paddle:
                 self.corners['bot_right'],
                 self.corners['bot_left']
             ])
+        else:
+            pg.draw.circle(display, (0,255, 0), self.eye_points[0], radius=5)
+            pg.draw.circle(display, (0, 255, 0), self.eye_points[1], radius=5)
+            sprite = pg.transform.rotate(self.sprite, np.rad2deg(-self.angle))
+            rect = sprite.get_rect()
+            rect.center = self.xy.astype(float)
+            display.blit(sprite, rect)
+
