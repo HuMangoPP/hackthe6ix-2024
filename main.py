@@ -11,6 +11,7 @@ def main():
     display = pg.display.set_mode(screen_size)
     clock = pg.time.Clock()
     font = Font(pg.image.load('./src/pyfont/font.png').convert())
+    pg.display.set_caption('Goose Pong')
     
     capture = cv.VideoCapture(0)
     mp_face_detection = mp.solutions.face_detection
@@ -51,10 +52,12 @@ def main():
 
                 if current_menu == 'game':
                     osts['idle'].stop()
-                    osts['battle'].play(-1, fade_ms=1000)
+                    if osts['battle'].get_num_channels() == 0:
+                        osts['battle'].play(-1, fade_ms=1000)
                 if current_menu == 'start':
                     osts['battle'].stop()
-                    osts['idle'].play(-1, fade_ms=1000)
+                    if osts['idle'].get_num_channels() == 0:
+                        osts['idle'].play(-1, fade_ms=1000)
             if 'mute' in menu_return:
                 if osts['idle'].get_volume() > 0:
                     osts['idle'].set_volume(0)
@@ -67,7 +70,7 @@ def main():
             menus[current_menu].render(display)
             pg.display.flip()
 
-            pg.display.set_caption(f'fps: {clock.get_fps()}')
+            # pg.display.set_caption(f'fps: {clock.get_fps()}')
 
     pg.quit()
 

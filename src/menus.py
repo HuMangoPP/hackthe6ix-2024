@@ -228,14 +228,17 @@ class GameMenu(Menu):
         self.left_score = 0
         self.right_score = 0
         self.ball_speed = self.ball_speed_options[selected_settings[0]["value"]]
-        self.ball = Ball(self.screen_size, sprite_path='./assets/apple_core.png', speed_mult=self.ball_speed)
+        ball_sprites = ['apple_core', 'crumpled_paper', 'garbage_bag']
+        self.ball = Ball(self.screen_size, sprite_path=f'./assets/{np.random.choice(ball_sprites)}.png', speed_mult=self.ball_speed)
         self.ball.reset(2)
         self.goal_size = self.goal_size_options[selected_settings[1]["value"]]
-        self.left_goal = Goal(self.screen_size * np.array([0, 1/2]), sprite_path='./assets/garbage_bin.png', height=self.goal_size)
-        self.right_goal = Goal(self.screen_size * np.array([1, 1/2]), sprite_path='./assets/garbage_bin.png', height=self.goal_size)
+        goal_sprites = ['garbage_bin', 'recycling_bin', 'compost_bin']
+        self.left_goal = Goal(self.screen_size * np.array([0, 1/2]), sprite_path=f'./assets/{np.random.choice(goal_sprites)}.png', height=self.goal_size)
+        self.right_goal = Goal(self.screen_size * np.array([1, 1/2]), sprite_path=f'./assets/{np.random.choice(goal_sprites)}.png', height=self.goal_size)
         self.paddle_size = self.paddle_size_options[selected_settings[2]["value"]]
-        self.left_paddle = Paddle(self.screen_size * np.array([1/4, 1/2]), self.paddle_size, sprite_path='./assets/goose.png') 
-        self.right_paddle = Paddle(self.screen_size * np.array([3/4, 1/2]), self.paddle_size, sprite_path='./assets/goose.png')
+        paddle_sprites = ['goose', 'duck', 'flamingo', 'heron', 'mallard', 'swan']
+        self.left_paddle = Paddle(self.screen_size * np.array([1/4, 1/2]), self.paddle_size, sprite_path=f'./assets/{np.random.choice(paddle_sprites)}.png') 
+        self.right_paddle = Paddle(self.screen_size * np.array([3/4, 1/2]), self.paddle_size, sprite_path=f'./assets/{np.random.choice(paddle_sprites)}.png')
 
 
     def update(self, dt: float, events: list[pg.Event]):
