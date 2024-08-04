@@ -109,6 +109,10 @@ class StartMenu(Menu):
         self.exit_button = pg.Rect(0, 0, screen_size[0] / 4, screen_size[1] / 8)
         self.exit_button.center = (screen_size[0] / 2, screen_size[1] / 2 + 2 * screen_size[1] / 6)
 
+        self.mute_button = pg.Rect(0, 0, screen_size[0] / 8, screen_size[1] / 8)
+        self.mute_button.centerx = screen_size[0] - self.mute_button.width / 2 - 10
+        self.mute_button.centery = self.mute_button.height / 2 + 10
+
     def update(self, dt: float, events: list[pg.Event]):
         menu_return = dict(
             new_menu=None,
@@ -122,6 +126,8 @@ class StartMenu(Menu):
                     menu_return['new_menu'] = 'settings'
                 if self.exit_button.collidepoint(event.pos):
                     menu_return['exit'] = True
+                if self.mute_button.collidepoint(event.pos):
+                    menu_return['mute'] = True
         
         return menu_return
     
@@ -155,6 +161,17 @@ class StartMenu(Menu):
             self.exit_button.centerx, 
             self.exit_button.centery, 
             (255, 255, 255), 
+            self.screen_size[1] / 32,
+            style='center'
+        )
+
+        pg.draw.rect(display, (255, 0, 0), self.mute_button)
+        self.font.render(
+            display,
+            'mute',
+            self.mute_button.centerx,
+            self.mute_button.centery,
+            (255, 255, 255),
             self.screen_size[1] / 32,
             style='center'
         )

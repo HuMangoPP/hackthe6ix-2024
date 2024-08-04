@@ -25,9 +25,12 @@ def main():
         current_menu = 'start'
 
         osts = dict(
-            game=pg.mixer.Sound('./assets/battle_theme.mp3')
+            idle=pg.mixer.Sound('./assets/menu_theme.mp3'),
+            battle=pg.mixer.Sound('./assets/battle_theme.mp3')
         )
-        osts['game'].set_volume(0.4)
+        osts['battle'].set_volume(0.5)
+        osts['idle'].set_volume(0.5)
+        osts['idle'].play(-1, fade_ms=1000)
         running = True
         while running:
             events = pg.event.get()
@@ -47,7 +50,18 @@ def main():
                 menus[current_menu].load(menu_return)
 
                 if current_menu == 'game':
-                    osts['game'].play(-1)
+                    osts['idle'].stop()
+                    osts['battle'].play(-1, fade_ms=1000)
+                if current_menu == 'start':
+                    osts['battle'].stop()
+                    osts['idle'].play(-1, fade_ms=1000)
+            if 'mute' in menu_return:
+                if osts['idle'].get_volume() > 0:
+                    osts['idle'].set_volume(0)
+                    osts['battle'].set_volume(0)
+                else:
+                    osts['idle'].set_volume(0.5)
+                    osts['battle'].set_volume(0.5)
 
             display.fill((90, 120, 200))
             menus[current_menu].render(display)
