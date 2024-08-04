@@ -132,6 +132,15 @@ class StartMenu(Menu):
         return menu_return
     
     def render(self, display: pg.Surface):
+        self.font.render(
+            display,
+            "Goose Pong",
+            self.screen_size[0] / 2,
+            self.screen_size[1] / 4,
+            (255,255,255),
+            self.screen_size[1] / 10,
+            style='center'
+        )
         pg.draw.rect(display, (255, 0, 0), self.start_button)
         self.font.render(
             display, 
